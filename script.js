@@ -157,7 +157,8 @@
   }
 
   function renderDashboard() {
-    if (!state.setupDone) return;
+  if (!state.setupDone) return;
+  if (!document.getElementById("dashboard")) return; // コラムページ等、dashboard要素がないページでは何もしない
 
     // 働き方に応じた入力欄の出し分け
     var inputs = {
