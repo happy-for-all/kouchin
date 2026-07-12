@@ -1,0 +1,9 @@
+# 依存パッケージ（npm installで復元可能）
+node_modules/
+
+# ビルド生成物（GitHub Actionsの実行時に自動生成される）
+dist/
+
+# OSが自動生成するファイル
+.DS_Store
+Thumbs.db
