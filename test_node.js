@@ -134,6 +134,112 @@ async function run() {
   }
   assert(window.localStorage.getItem("kouchinState") === null, "リセットでlocalStorageが空になる");
 
+  console.log("\n[7b] 出来高制での動作確認");
+  window.localStorage.clear();
+  window.eval(js);
+  document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true, cancelable: true }));
+
+  document.querySelector('input[name="payType"][value="piece"]').checked = true;
+  document.querySelector('input[name="payType"][value="piece"]').dispatchEvent(new window.Event("change", { bubbles: true }));
+  document.querySelector('input[name="monthlyGoal"]').value = "8000";
+  document.getElementById("onboarding-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  document.getElementById("input-piece-amount").value = "3500";
+  document.getElementById("save-record-button").dispatchEvent(new window.Event("click", { bubbles: true }));
+  const pieceProgress = document.getElementById("progress-text").textContent;
+  assert(pieceProgress.indexOf("3,500円") !== -1, "出来高制：直接入力した金額が反映される（表示: " + pieceProgress + "）");
+  assert(document.getElementById("progress-fill").style.width === "44%", "3,500÷8,000=43.75%が四捨五入で44%になる（表示: " + document.getElementById("progress-fill").style.width + "）");
+
+  console.log("\n[7c] 月をまたいだ集計の確認（今月分だけが達成率に反映され、人生累計には両方含まれる）");
+  window.localStorage.clear();
+  window.eval(js);
+  document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true, cancelable: true }));
+
+  document.querySelector('input[name="payType"][value="piece"]').checked = true;
+  document.querySelector('input[name="payType"][value="piece"]').dispatchEvent(new window.Event("change", { bubbles: true }));
+  document.querySelector('input[name="monthlyGoal"]').value = "5000";
+  document.getElementById("onboarding-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  // 先月分のダミーデータをlocalStorageへ直接書き込む（先月10,000円）
+  const stateForMonthTest = JSON.parse(window.localStorage.getItem("kouchinState"));
+  const now = new Date();
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 10);
+  const lastMonthKey = lastMonthDate.getFullYear() + "-" + String(lastMonthDate.getMonth() + 1).padStart(2, "0") + "-10";
+  stateForMonthTest.entries[lastMonthKey] = { amount: 10000, mood: "good", memo: "先月分" };
+  window.localStorage.setItem("kouchinState", JSON.stringify(stateForMonthTest));
+  window.eval(js);
+  document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true, cancelable: true }));
+
+  document.getElementById("input-piece-amount").value = "2000";
+  document.getElementById("save-record-button").dispatchEvent(new window.Event("click", { bubbles: true }));
+
+  const monthCrossProgress = document.getElementById("progress-text").textContent;
+  assert(monthCrossProgress.indexOf("2,000円 / 5,000円") !== -1, "今月分の集計に先月分10,000円が混入していない（表示: " + monthCrossProgress + "）");
+  const monthCrossLifetime = document.getElementById("lifetime-total").textContent;
+  assert(monthCrossLifetime === "12,000円", "人生累計には先月分＋今月分の両方が含まれる（表示: " + monthCrossLifetime + "）");
+
+  console.log("\n[7d] 支給日カウントダウンの正確性チェック（日付を差し替えての直接比較）");
+  // 障害年金の「偶数月15日・土日は直前平日に前倒し」ルールを、
+  // script.js とは別に、このテストファイル内で改めて実装し、
+  // 「今日の日付」を複数パターンに差し替えながら、
+  // アプリの表示結果と期待値が一致するかを直接比較する。
+  function referenceNextPaymentDate(fromDate) {
+    const evenMonthsIndex = [1, 3, 5, 7, 9, 11]; // 2,4,6,8,10,12月（0始まり）
+    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    for (let yOffset = 0; yOffset <= 1; yOffset++) {
+      for (let i = 0; i < evenMonthsIndex.length; i++) {
+        const candidate = new Date(from.getFullYear() + yOffset, evenMonthsIndex[i], 15);
+        const day = candidate.getDay();
+        if (day === 6) candidate.setDate(candidate.getDate() - 1);
+        if (day === 0) candidate.setDate(candidate.getDate() - 2);
+        if (candidate >= from) return candidate;
+      }
+    }
+    return null;
+  }
+
+  // 障害年金ONの状態を用意
+  window.localStorage.clear();
+  window.eval(js);
+  document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true, cancelable: true }));
+  document.querySelector('input[name="payType"][value="piece"]').checked = true;
+  document.querySelector('input[name="payType"][value="piece"]').dispatchEvent(new window.Event("change", { bubbles: true }));
+  document.querySelector('input[name="monthlyGoal"]').value = "5000";
+  document.querySelector('input[name="benefitPension"]').checked = true;
+  document.getElementById("onboarding-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  const testDates = [
+    new Date(2026, 0, 1),    // 2026-01-01（元日）
+    new Date(2026, 6, 12),   // 2026-07-12（今回の作業日）
+    new Date(2026, 7, 1),    // 2026-08-01
+    new Date(2026, 11, 31),  // 2026-12-31（年またぎ）
+    new Date(2026, 1, 15)    // 2026-02-15（ちょうど支給日当日のケース）
+  ];
+  const OriginalDate = window.Date;
+
+  testDates.forEach(function (testDate) {
+    function MockDate(...args) {
+      if (args.length === 0) return new OriginalDate(testDate.getTime());
+      return new OriginalDate(...args);
+    }
+    MockDate.prototype = OriginalDate.prototype;
+    MockDate.now = function () { return testDate.getTime(); };
+    window.Date = MockDate;
+
+    window.eval(js); // 日付だけ差し替えて再初期化（benefitPension等の状態はlocalStorageに残ったまま）
+    document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true, cancelable: true }));
+
+    const expected = referenceNextPaymentDate(testDate);
+    const expectedDiff = Math.round((expected - testDate) / (1000 * 60 * 60 * 24));
+    const expectedText = expectedDiff === 0 ? "本日です！" : "あと " + expectedDiff + "日";
+    const actualText = document.getElementById("pension-countdown").textContent;
+    const label = testDate.getFullYear() + "-" + String(testDate.getMonth() + 1).padStart(2, "0") + "-" + String(testDate.getDate()).padStart(2, "0");
+
+    assert(actualText === expectedText, "基準日 " + label + "：期待値[" + expectedText + "] 実際[" + actualText + "]");
+
+    window.Date = OriginalDate; // 後片付け
+  });
+
   console.log("\n[8] CSSの基本チェック（左右余白の変数が定義されているか）");
   assert(css.indexOf("--gutter") !== -1, "--gutter 変数が定義されている");
   assert(css.indexOf("--content-max-width") !== -1, "--content-max-width 変数が定義されている");
