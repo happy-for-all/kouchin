@@ -144,6 +144,14 @@ main {
   padding: 28px 0 60px;
 }
 
+/* コラムページ等、main の直下を <article> でラップしている場合の対応。
+   display: contents により、article自体は見た目上「透明な入れ物」になり、
+   中の <section> が main の直接の子として扱われるため、
+   main の gap（セクション間の余白）が正しく効くようになる。 */
+main > article {
+  display: contents;
+}
+
 .section__title {
   font-size: clamp(1.3rem, 4vw, 1.6rem);
   color: var(--color-primary-dark);
