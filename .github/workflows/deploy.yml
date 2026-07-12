@@ -1,0 +1,32 @@
+name: Deploy to Cloudflare Workers
+
+# ==================================================================
+# 手動実行のみ（workflow_dispatch）。
+# 「つまづきメモ」の教訓に基づき、command には
+# --config wrangler.json を明示している。
+# ==================================================================
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: 公開用ファイルをdistフォルダにまとめる
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+          cp style.css dist/
+          cp script.js dist/
+          cp ads.txt dist/
+          # 今後 column-xxx.html などの記事ファイルを追加した際は、
+          # ここにも cp コマンドを1行追加してください。
+
+      - name: Cloudflare Workersへデプロイ
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --config wrangler.json
