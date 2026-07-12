@@ -22,8 +22,9 @@ jobs:
           cp style.css dist/
           cp script.js dist/
           cp ads.txt dist/
-          # 今後 column-xxx.html などの記事ファイルを追加した際は、
-          # ここにも cp コマンドを1行追加してください。
+          cp column-ab-hikaku.html dist/
+          cp column-zeikin.html dist/
+          cp column-kouchin-up.html dist/
 
       - name: Cloudflare Workersへデプロイ
         uses: cloudflare/wrangler-action@v3
