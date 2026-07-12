@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイ工賃メーター｜今日の頑張りを、あなたの力に。</title>
+<meta name="description" content="就労継続支援A型・B型で働くあなたのための、工賃記録＆目標管理ツール。毎日の頑張りを記録して、目標達成やご褒美までの道のりを見える化。障害年金などの支給日カウントダウンも。">
+
+<!-- ==================================================
+     【テスト公開中】noindex設定
+     公開準備が整うまでは検索エンジンにインデックスさせません。
+     本番公開時は、このmetaタグを削除するか
+     content="index, follow" に書き換えてください。
+====================================================== -->
+<meta name="robots" content="noindex">
+
+<!-- 正規URL（カノニカルタグ） -->
+<link rel="canonical" href="https://kouchin.pray-power-is-god-and-cocoro.com/">
+
+<!-- ==================================================
+     ファビコン（仮設置）
+     正式な画像ができたら favicon.ico 等に差し替えてください。
+     現状はコイン絵文字を仮アイコンとして表示しています。
+====================================================== -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
+
+<!-- Googleフォント（見出し・金額用：Zen Maru Gothic／本文用：Noto Sans JP） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- ==================================================
+     Google AdSense（読み込みスクリプト）
+     テスト公開が終わり、本番公開する際にコメントを外してください。
+====================================================== -->
+<!--
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2908004621823900" crossorigin="anonymous"></script>
+-->
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ==================================================
+     ヘッダー
+====================================================== -->
+<header class="site-header">
+  <div class="site-header__inner">
+    <span class="site-header__logo">💰 マイ工賃メーター</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ==================================================
+       ① ヒーローセクション
+  ====================================================== -->
+  <section class="section hero reveal" id="hero">
+    <div class="section__inner">
+      <div class="hero__illustration" aria-hidden="true">
+        <!-- お金袋（巾着）のシンプルなイラストと、こぼれるコイン -->
+        <svg viewBox="0 0 240 200" class="pouch-svg">
+          <ellipse cx="120" cy="185" rx="70" ry="8" fill="#00000012"/>
+          <path d="M60 90 C55 150 80 180 120 180 C160 180 185 150 180 90 C178 60 150 45 120 45 C90 45 62 60 60 90 Z" fill="var(--color-pouch)"/>
+          <path d="M75 60 C75 40 95 25 120 25 C145 25 165 40 165 60 L150 65 C148 50 135 40 120 40 C105 40 92 50 90 65 Z" fill="var(--color-pouch-dark)"/>
+          <circle class="coin coin--1" cx="45" cy="70" r="16" fill="var(--color-primary)"/>
+          <text x="45" y="76" text-anchor="middle" class="coin-mark">¥</text>
+          <circle class="coin coin--2" cx="195" cy="55" r="13" fill="var(--color-primary)"/>
+          <text x="195" y="60" text-anchor="middle" class="coin-mark coin-mark--sm">¥</text>
+          <circle class="coin coin--3" cx="200" cy="110" r="10" fill="var(--color-primary)"/>
+        </svg>
+      </div>
+      <p class="eyebrow">当事者ご本人のための、収入記録アプリ</p>
+      <h1 class="hero__title">今日の頑張りを、<br>あなたの力に。</h1>
+      <p class="hero__lead">工賃や収入を記録して、目標やご褒美までの道のりを見える化。障害年金などの支給日カウントダウンもひと目でわかります。</p>
+      <a href="#app" class="button button--primary">はじめる・記録する</a>
+    </div>
+  </section>
+
+  <!-- ==================================================
+       ② ツール本体（初期設定 → メイン画面）
+  ====================================================== -->
+  <section class="section app-section reveal" id="app">
+    <div class="section__inner">
+
+      <!-- ---- 初期設定フロー（初回のみ表示） ---- -->
+      <div id="onboarding">
+        <h2 class="section__title">はじめに、かんたん設定</h2>
+        <p class="section__note">入力した内容は、この端末（ブラウザ）だけに保存されます。サーバーには送信されません。</p>
+
+        <form id="onboarding-form">
+
+          <!-- Step1 -->
+          <fieldset class="step">
+            <legend>Step1：働き方を選んでください</legend>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="payType" value="hourly" required>
+                <span>時給制</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="payType" value="daily">
+                <span>日給制</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="payType" value="piece">
+                <span>出来高制</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Step2（働き方により表示が切り替わる） -->
+          <fieldset class="step" id="step-wage-hourly" hidden>
+            <legend>Step2：時給を入力してください</legend>
+            <label class="field">
+              <span>時給（円）</span>
+              <input type="number" name="hourlyWage" min="0" step="1" inputmode="numeric">
+            </label>
+          </fieldset>
+
+          <fieldset class="step" id="step-wage-daily" hidden>
+            <legend>Step2：日給を入力してください</legend>
+            <label class="field">
+              <span>日給（円）</span>
+              <input type="number" name="dailyWage" min="0" step="1" inputmode="numeric">
+            </label>
+          </fieldset>
+
+          <fieldset class="step" id="step-wage-piece" hidden>
+            <legend>Step2：出来高制ですね、承知しました</legend>
+            <p class="section__note">日々の記録画面で、その日に稼いだ金額を直接入力していただきます。</p>
+          </fieldset>
+
+          <!-- Step3 -->
+          <fieldset class="step">
+            <legend>Step3：今月の目標額を入力してください</legend>
+            <label class="field">
+              <span>目標額（円）</span>
+              <input type="number" name="monthlyGoal" min="0" step="1" inputmode="numeric" placeholder="例）30000">
+            </label>
+          </fieldset>
+
+          <!-- Step4 -->
+          <fieldset class="step">
+            <legend>Step4：ご褒美（任意）</legend>
+            <label class="field">
+              <span>達成したら、何をしたいですか？</span>
+              <input type="text" name="reward" maxlength="30" placeholder="例）焼肉に行く">
+            </label>
+          </fieldset>
+
+          <!-- Step5 -->
+          <fieldset class="step">
+            <legend>Step5：受給している制度（任意）</legend>
+            <label class="checkbox-card">
+              <input type="checkbox" name="benefitPension">
+              <span>障害年金（基礎・厚生）</span>
+            </label>
+            <p class="section__note">※現在は障害年金のみ、支給日カウントダウンに対応しています。他の手当は今後順次対応予定です。</p>
+          </fieldset>
+
+          <button type="submit" class="button button--primary button--block">はじめる</button>
+        </form>
+      </div>
+
+      <!-- ---- メイン画面（設定完了後に表示） ---- -->
+      <div id="dashboard" hidden>
+
+        <!-- 日替わり応援メッセージ -->
+        <p class="cheer-message" id="cheer-message"></p>
+
+        <!-- 今日の記録 -->
+        <div class="widget">
+          <h2 class="widget__title">📅 今日の記録</h2>
+
+          <div id="today-input-hourly" class="today-input" hidden>
+            <label class="field">
+              <span>今日の勤務時間（時間）</span>
+              <input type="number" id="input-hours" min="0" step="0.5" inputmode="decimal" placeholder="例）4">
+            </label>
+          </div>
+
+          <div id="today-input-daily" class="today-input" hidden>
+            <div class="button-choice">
+              <button type="button" class="button button--choice" data-daily-choice="worked">出勤した</button>
+              <button type="button" class="button button--choice button--ghost" data-daily-choice="rest">お休み</button>
+            </div>
+          </div>
+
+          <div id="today-input-piece" class="today-input" hidden>
+            <label class="field">
+              <span>今日稼いだ金額（円）</span>
+              <input type="number" id="input-piece-amount" min="0" step="1" inputmode="numeric">
+            </label>
+          </div>
+
+          <div class="field">
+            <span>今日の気分</span>
+            <div class="mood-group" id="mood-group">
+              <button type="button" class="mood-button" data-mood="good" aria-label="良い">😊</button>
+              <button type="button" class="mood-button" data-mood="normal" aria-label="ふつう">😐</button>
+              <button type="button" class="mood-button" data-mood="hard" aria-label="つらい">😢</button>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>ひとこと（任意）</span>
+            <input type="text" id="input-memo" maxlength="60" placeholder="例）午前中がんばれた">
+          </label>
+
+          <button type="button" class="button button--primary button--block" id="save-record-button">記録する</button>
+          <p class="section__note" id="save-status" role="status"></p>
+        </div>
+
+        <!-- 今月の目標 -->
+        <div class="widget">
+          <h2 class="widget__title">🎯 今月の目標</h2>
+          <div class="progress-bar">
+            <div class="progress-bar__fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-text" id="progress-text"></p>
+          <p class="reward-text" id="reward-text"></p>
+          <div id="share-area" hidden>
+            <a href="#" id="share-link" class="button button--secondary" target="_blank" rel="noopener">達成をシェアする</a>
+          </div>
+        </div>
+
+        <!-- これまでの積み重ね -->
+        <div class="widget">
+          <h2 class="widget__title">💰 これまでの積み重ね</h2>
+          <p class="stat-line">人生累計：<span id="lifetime-total" class="stat-number">0円</span></p>
+          <p class="stat-line">記録した日数：<span id="lifetime-days" class="stat-number">0日</span></p>
+        </div>
+
+        <!-- 支給日カウントダウン -->
+        <div class="widget" id="pension-widget" hidden>
+          <h2 class="widget__title">⏰ 次の支給日まで</h2>
+          <p class="stat-line">障害年金：<span id="pension-countdown" class="stat-number">-</span></p>
+          <p class="section__note">※土日の前倒しのみ考慮しています。祝日による前倒しは反映されていません。正式な日付は日本年金機構等の公式情報でご確認ください。</p>
+        </div>
+
+        <p class="reset-link"><button type="button" id="reset-button">設定をリセットしてやり直す</button></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================================================
+       ③ このツールについて
+  ====================================================== -->
+  <section class="section reveal" id="about">
+    <div class="section__inner">
+      <h2 class="section__title">なぜ、このツール？</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <p class="feature-card__icon">📝</p>
+          <p class="feature-card__title">毎日、かんたん記録</p>
+          <p class="feature-card__text">ワンタップで今日の工賃と気分を記録。続けるほど、頑張ってきた軌跡が見えてきます。</p>
+        </div>
+        <div class="feature-card">
+          <p class="feature-card__icon">🎯</p>
+          <p class="feature-card__title">目標とご褒美が見える</p>
+          <p class="feature-card__text">今月の目標に対して、あとどれくらいかが一目瞭然。ご褒美までの距離もわかります。</p>
+        </div>
+        <div class="feature-card">
+          <p class="feature-card__icon">⏰</p>
+          <p class="feature-card__title">支給日もひと目で</p>
+          <p class="feature-card__text">障害年金の次の支給日まで、あと何日かをカウントダウン表示します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================
+       ④ AdSense広告枠（コメントアウト・設置場所の目印）
+       テスト公開が終わり、本番公開する際にコメントを外してください。
+  ====================================================== -->
+  <!--
+  <section class="section reveal ad-section">
+    <div class="section__inner">
+      <ins class="adsbygoogle"
+           style="display:block; text-align:center;"
+           data-ad-layout="in-article"
+           data-ad-format="fluid"
+           data-ad-client="ca-pub-2908004621823900"
+           data-ad-slot="5820083954"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+  </section>
+  -->
+
+  <!-- ==================================================
+       ⑤ 関連記事（SEOコラム）への導線
+       記事本体は今後 column-xxx.html として追加予定です。
+  ====================================================== -->
+  <section class="section reveal" id="columns">
+    <div class="section__inner">
+      <h2 class="section__title">📖 こちらもどうぞ</h2>
+      <ul class="column-list">
+        <li class="column-list__item column-list__item--soon">B型とA型、工賃はどれくらい違う？（準備中）</li>
+        <li class="column-list__item column-list__item--soon">工賃と障害年金、両方もらうと税金はどうなる？（準備中）</li>
+        <li class="column-list__item column-list__item--soon">工賃を上げるためにできること（準備中）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ==================================================
+       ⑥ ご利用にあたって（免責事項）
+  ====================================================== -->
+  <section class="section reveal" id="disclaimer">
+    <div class="section__inner">
+      <h2 class="section__title">ご利用にあたって</h2>
+      <ul class="disclaimer-list">
+        <li>本ツールは家計簿や診断ツールではなく、あくまで自己記録・モチベーション管理のための補助ツールです。</li>
+        <li>実際の工賃・給与額は、事業所からの明細でご確認ください。本ツールの表示額は目安です。</li>
+        <li>気分の記録は医療的な診断・評価を行うものではありません。気になる症状がある場合は主治医にご相談ください。</li>
+        <li>支給日は土日祝等により変動する場合があります。正式な日付は日本年金機構等の公式情報でご確認ください。</li>
+        <li>入力したデータは、お使いの端末（ブラウザ）にのみ保存されます。他の端末とは共有されません。</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>マイ工賃メーター（テスト公開中）</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

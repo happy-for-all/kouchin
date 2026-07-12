@@ -1,0 +1,597 @@
+/* ==================================================================
+   マイ工賃メーター - style.css
+   ------------------------------------------------------------------
+   目次
+   1. カラー・変数定義（一括調整用）
+   2. 全体リセット・基本設定
+   3. 背景（お金袋・金貨イメージのゴールド系グラデーション）
+   4. レイアウト共通（左右余白・カード）
+   5. ヘッダー／フッター
+   6. ヒーローセクション（お金袋イラスト）
+   7. スクロール出現アニメーション（セクションが浮かび上がる演出）
+   8. フォーム・ボタン共通パーツ
+   9. ツール本体（初期設定／メイン画面）
+   10. 「このツールについて」カード
+   11. コラム導線・免責事項
+   12. レスポンシブ（デスクトップ幅の微調整）
+================================================================== */
+
+
+/* ------------------------------------------------------------------
+   1. カラー・変数定義
+   ここを変えるだけで、サイト全体の余白・配色をまとめて調整できます。
+------------------------------------------------------------------ */
+:root {
+  /* 背景グラデーション（金貨・お金袋イメージ） */
+  --color-bg-grad-start: #FFEFC2;
+  --color-bg-grad-end:   #FFC163;
+
+  /* カード（セクション）の背景 */
+  --color-card-bg: #FFF9EC;
+
+  /* アクセントカラー（コインのゴールドオレンジ） */
+  --color-primary:      #E8892B;
+  --color-primary-dark: #C96F1B;
+
+  /* セカンドカラー（爽やかなミントティール／達成・進捗の色） */
+  --color-secondary:      #2FA79B;
+  --color-secondary-dark: #22857B;
+
+  /* テキストカラー（温かみのある濃茶） */
+  --color-text:      #4A3722;
+  --color-text-soft: #8A7658;
+
+  /* お金袋（巾着）本体の色 */
+  --color-pouch:      #9C6B3E;
+  --color-pouch-dark: #7C5228;
+
+  /* フォント */
+  --font-display: "Zen Maru Gothic", sans-serif;
+  --font-body: "Noto Sans JP", sans-serif;
+
+  /* レイアウト調整用（一括調整可） */
+  --gutter: clamp(16px, 6vw, 48px);
+  --content-max-width: 640px;
+  --card-radius: 28px;
+}
+
+
+/* ------------------------------------------------------------------
+   2. 全体リセット・基本設定
+------------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  margin: 0 0 0.6em;
+  line-height: 1.4;
+}
+
+p {
+  margin: 0 0 1em;
+}
+
+a {
+  color: var(--color-primary-dark);
+}
+
+button {
+  font-family: inherit;
+}
+
+
+/* ------------------------------------------------------------------
+   3. 背景（ゴールド系グラデーション＋コインの点在パターン）
+   background-attachment: fixed により、スクロールしても背景が
+   固定され、カードだけが上を流れていくような視覚効果を作る。
+------------------------------------------------------------------ */
+body {
+  background-color: var(--color-bg-grad-end);
+  background-image:
+    radial-gradient(circle at 15% 8%, #FFFFFF55 0, transparent 40%),
+    radial-gradient(circle at 85% 92%, #FFFFFF33 0, transparent 45%),
+    linear-gradient(160deg, var(--color-bg-grad-start) 0%, var(--color-bg-grad-end) 100%);
+  background-attachment: fixed;
+}
+
+/* iOSなど background-attachment: fixed が不安定な環境向けの保険 */
+@supports (-webkit-touch-callout: none) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+
+/* ------------------------------------------------------------------
+   4. レイアウト共通（左右余白・カード）
+   .section__inner の max-width と padding で、
+   「左右いっぱいに広げない・余白を持たせる」を実現。
+   --content-max-width と --gutter を変えるだけで全体を一括調整できる。
+------------------------------------------------------------------ */
+.section {
+  padding: 0 var(--gutter);
+}
+
+.section__inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 32px clamp(20px, 5vw, 40px);
+  background: var(--color-card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: 0 18px 40px -20px rgba(74, 55, 34, 0.35);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 28px 0 60px;
+}
+
+.section__title {
+  font-size: clamp(1.3rem, 4vw, 1.6rem);
+  color: var(--color-primary-dark);
+}
+
+.section__note {
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+}
+
+
+/* ------------------------------------------------------------------
+   5. ヘッダー／フッター
+------------------------------------------------------------------ */
+.site-header {
+  padding: 18px var(--gutter) 6px;
+}
+
+.site-header__inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.site-header__logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+.site-footer {
+  text-align: center;
+  padding: 24px var(--gutter) 40px;
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+}
+
+
+/* ------------------------------------------------------------------
+   6. ヒーローセクション（お金袋イラスト・唯一のリッチな見せ場）
+------------------------------------------------------------------ */
+.hero {
+  text-align: center;
+}
+
+.hero__illustration {
+  max-width: 220px;
+  margin: 0 auto 8px;
+}
+
+.pouch-svg {
+  width: 100%;
+  height: auto;
+}
+
+.coin-mark {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  fill: #FFFBF2;
+}
+
+.coin-mark--sm {
+  font-size: 13px;
+}
+
+/* コインがふわふわ浮かぶような、ささやかなアニメーション */
+.coin {
+  animation: coin-float 3.2s ease-in-out infinite;
+  transform-origin: center;
+}
+.coin--2 { animation-delay: 0.4s; }
+.coin--3 { animation-delay: 0.9s; }
+
+@keyframes coin-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  color: var(--color-secondary-dark);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.hero__title {
+  font-size: clamp(1.7rem, 6vw, 2.3rem);
+  color: var(--color-text);
+}
+
+.hero__lead {
+  color: var(--color-text-soft);
+  font-size: 0.95rem;
+  max-width: 34em;
+  margin-inline: auto;
+}
+
+
+/* ------------------------------------------------------------------
+   7. スクロール出現アニメーション
+   各セクションが少し下からフワッと現れる。
+   prefers-reduced-motion の場合はアニメーションを行わない。
+------------------------------------------------------------------ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .coin {
+    animation: none;
+  }
+}
+
+
+/* ------------------------------------------------------------------
+   8. フォーム・ボタン共通パーツ
+------------------------------------------------------------------ */
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.field span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+  margin-bottom: 6px;
+}
+
+.field input[type="number"],
+.field input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 2px solid #EBD9B4;
+  border-radius: 14px;
+  background: #FFFFFF;
+  color: var(--color-text);
+}
+
+.field input:focus {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 1px;
+  border-color: var(--color-secondary);
+}
+
+.button {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  min-height: 44px;
+}
+
+.button--primary {
+  background: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.button--primary:hover,
+.button--primary:focus-visible {
+  background: var(--color-primary-dark);
+}
+
+.button--secondary {
+  background: var(--color-secondary);
+  color: #FFFFFF;
+}
+
+.button--secondary:hover,
+.button--secondary:focus-visible {
+  background: var(--color-secondary-dark);
+}
+
+.button--block {
+  display: block;
+  width: 100%;
+}
+
+.button--choice {
+  background: var(--color-secondary);
+  color: #FFFFFF;
+}
+
+.button--ghost {
+  background: #FFFFFF;
+  color: var(--color-text);
+  border: 2px solid #EBD9B4;
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--color-secondary-dark);
+  outline-offset: 2px;
+}
+
+
+/* ------------------------------------------------------------------
+   9. ツール本体（初期設定／メイン画面）
+------------------------------------------------------------------ */
+.step {
+  border: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+.step legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  padding: 0;
+  margin-bottom: 10px;
+}
+
+.radio-group,
+.button-choice {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.radio-card,
+.checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #EBD9B4;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  cursor: pointer;
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+.radio-card input,
+.checkbox-card input {
+  accent-color: var(--color-primary);
+  width: 18px;
+  height: 18px;
+}
+
+.widget {
+  background: #FFFFFF;
+  border: 1px solid #F1E2C0;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.widget__title {
+  font-size: 1.05rem;
+  margin-bottom: 14px;
+}
+
+.cheer-message {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: #FFF3DA;
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.today-input {
+  margin-bottom: 16px;
+}
+
+.mood-group {
+  display: flex;
+  gap: 10px;
+}
+
+.mood-button {
+  font-size: 1.6rem;
+  background: #FFFFFF;
+  border: 2px solid #EBD9B4;
+  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  cursor: pointer;
+}
+
+.mood-button.is-selected {
+  border-color: var(--color-secondary);
+  background: #E9FBF8;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 18px;
+  background: #F1E2C0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-secondary);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.reward-text {
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+}
+
+.stat-line {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--color-primary-dark);
+  font-size: 1.15rem;
+}
+
+.reset-link {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.reset-link button {
+  background: none;
+  border: none;
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
+/* ------------------------------------------------------------------
+   10. 「このツールについて」カード
+------------------------------------------------------------------ */
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.feature-card {
+  background: #FFFFFF;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #F1E2C0;
+}
+
+.feature-card__icon {
+  font-size: 1.6rem;
+  margin: 0 0 4px;
+}
+
+.feature-card__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.feature-card__text {
+  font-size: 0.88rem;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+
+/* ------------------------------------------------------------------
+   11. コラム導線・免責事項
+------------------------------------------------------------------ */
+.column-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.column-list__item {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #F1E2C0;
+  margin-bottom: 10px;
+  font-size: 0.92rem;
+}
+
+.column-list__item--soon {
+  color: var(--color-text-soft);
+}
+
+.disclaimer-list {
+  padding-left: 1.2em;
+  font-size: 0.82rem;
+  color: var(--color-text-soft);
+}
+
+.disclaimer-list li {
+  margin-bottom: 8px;
+}
+
+
+/* ------------------------------------------------------------------
+   12. レスポンシブ（デスクトップ幅の微調整）
+   基本はスマホ優先で組んであるため、広い画面では
+   少し文字と余白にゆとりを持たせる程度の調整のみ行う。
+------------------------------------------------------------------ */
+@media (min-width: 700px) {
+  :root {
+    --content-max-width: 680px;
+  }
+
+  main {
+    gap: 36px;
+    padding: 40px 0 80px;
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
