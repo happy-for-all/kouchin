@@ -22,6 +22,7 @@ jobs:
           cp style.css dist/
           cp script.js dist/
           cp ads.txt dist/
+          cp favicon.ico dist/
           cp column-ab-hikaku.html dist/
           cp column-zeikin.html dist/
           cp column-kouchin-up.html dist/
