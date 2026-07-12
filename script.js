@@ -203,19 +203,20 @@
      5. 記録フォーム（追加・編集）の操作
   ---------------------------------------------------------------- */
   function resetRecordForm() {
-    var hoursInput = document.getElementById("input-hours");
-    var pieceInput = document.getElementById("input-piece-amount");
-    var memoInput = document.getElementById("input-memo");
+  var hoursInput = document.getElementById("input-hours");
+  var pieceInput = document.getElementById("input-piece-amount");
+  var memoInput = document.getElementById("input-memo");
 
-    if (hoursInput) hoursInput.value = "";
-    if (pieceInput) pieceInput.value = "";
-    if (memoInput) memoInput.value = "";
+  if (hoursInput) hoursInput.value = "";
+  if (pieceInput) pieceInput.value = "";
+  if (memoInput) memoInput.value = "";
 
-    selectedMood = null;
-    selectedDailyChoice = null;
-    updateMoodButtons();
-    updateDailyChoiceButtons();
-  }
+  selectedMood = null;
+  // 「出勤した／お休み」の選択は、記録後もそのまま保持する。
+  // 同じ状態が続くことが多いため、毎回選び直す手間をなくすための対応。
+  updateMoodButtons();
+  updateDailyChoiceButtons();
+}
 
   function enterEditMode(entry) {
     editingEntryId = entry.id;
