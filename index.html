@@ -169,27 +169,28 @@
         <!-- 日替わり応援メッセージ -->
         <p class="cheer-message" id="cheer-message"></p>
 
-        <!-- 今日の記録 -->
+        <!-- 記録の追加・編集フォーム -->
         <div class="widget">
-          <h2 class="widget__title">📅 今日の記録</h2>
+          <h2 class="widget__title" id="record-form-title">📅 今日の記録を追加</h2>
 
           <div id="today-input-hourly" class="today-input" hidden>
             <label class="field">
-              <span>今日の勤務時間（時間）</span>
+              <span>勤務時間（時間）</span>
               <input type="number" id="input-hours" min="0" step="0.5" inputmode="decimal" placeholder="例）4">
             </label>
           </div>
 
           <div id="today-input-daily" class="today-input" hidden>
-            <div class="button-choice">
-              <button type="button" class="button button--choice" data-daily-choice="worked">出勤した</button>
-              <button type="button" class="button button--choice button--ghost" data-daily-choice="rest">お休み</button>
+            <span class="field-label">出勤しましたか？</span>
+            <div class="button-choice" id="daily-choice-group">
+              <button type="button" class="button button--choice" data-daily-choice="worked" aria-pressed="false">出勤した</button>
+              <button type="button" class="button button--choice button--ghost" data-daily-choice="rest" aria-pressed="false">お休み</button>
             </div>
           </div>
 
           <div id="today-input-piece" class="today-input" hidden>
             <label class="field">
-              <span>今日稼いだ金額（円）</span>
+              <span>稼いだ金額（円）</span>
               <input type="number" id="input-piece-amount" min="0" step="1" inputmode="numeric">
             </label>
           </div>
@@ -208,8 +209,16 @@
             <input type="text" id="input-memo" maxlength="60" placeholder="例）午前中がんばれた">
           </label>
 
-          <button type="button" class="button button--primary button--block" id="save-record-button">記録する</button>
+          <button type="button" class="button button--primary button--block" id="save-record-button">記録を追加</button>
+          <button type="button" class="button button--ghost button--block" id="cancel-edit-button" hidden>編集をやめる</button>
           <p class="section__note" id="save-status" role="status"></p>
+        </div>
+
+        <!-- 記録一覧（今月分） -->
+        <div class="widget">
+          <h2 class="widget__title">🗂 今月の記録一覧</h2>
+          <ul class="record-list" id="record-list"></ul>
+          <p class="section__note" id="record-list-empty">まだ今月の記録がありません。上のフォームから記録してみましょう。</p>
         </div>
 
         <!-- 今月の目標 -->
@@ -299,9 +308,9 @@
     <div class="section__inner">
       <h2 class="section__title">📖 こちらもどうぞ</h2>
       <ul class="column-list">
-<li class="column-list__item"><a href="column-ab-hikaku.html">B型とA型、工賃はどれくらい違う？</a></li>
-<li class="column-list__item"><a href="column-zeikin.html">工賃と障害年金、両方もらうと税金はどうなる？</a></li>
-<li class="column-list__item"><a href="column-kouchin-up.html">工賃を上げるためにできること</a></li>
+        <li class="column-list__item column-list__item--soon">B型とA型、工賃はどれくらい違う？（準備中）</li>
+        <li class="column-list__item column-list__item--soon">工賃と障害年金、両方もらうと税金はどうなる？（準備中）</li>
+        <li class="column-list__item column-list__item--soon">工賃を上げるためにできること（準備中）</li>
       </ul>
     </div>
   </section>

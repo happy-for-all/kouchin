@@ -6,12 +6,13 @@
    2. スクロール出現アニメーション
    3. 初期設定フォーム（オンボーディング）
    4. メイン画面の表示切り替え・レンダリング
-   5. 今日の記録（工賃・気分・メモ）の保存
-   6. 集計処理（今月の達成率／人生累計／記録日数）
-   7. 支給日カウントダウン（障害年金：偶数月15日・土日前倒しのみ考慮）
-   8. 応援メッセージ
-   9. リセット機能（テスト用）
-   10. 初期化
+   5. 記録フォーム（追加・編集）の操作
+   6. 記録一覧の表示・編集・削除
+   7. 集計処理（今月の達成率／人生累計／記録日数）
+   8. 支給日カウントダウン（障害年金：偶数月15日・土日前倒しのみ考慮）
+   9. 応援メッセージ
+   10. リセット機能（テスト用）
+   11. 初期化
 ================================================================== */
 
 (function () {
@@ -21,6 +22,15 @@
      1. 状態管理（localStorage）
      すべてのデータはこの端末のブラウザ内にのみ保存する。
      サーバーへの送信は一切行わない。
+
+     entries は「記録の配列」として保持する（1日1件の上書きではなく、
+     記録するたびに1件ずつ追加され、あとから編集・削除もできる）。
+     例：
+     [
+       { id: "e_xxxx", date: "2026-07-12", amount: 4000,
+         mood: "good", memo: "午前中がんばれた", hours: 4,
+         createdAt: 1752000000000 }
+     ]
   ---------------------------------------------------------------- */
   var STORAGE_KEY = "kouchinState";
 
@@ -32,7 +42,7 @@
     monthlyGoal: 0,
     reward: "",
     benefitPension: false,
-    entries: {}            // { "2026-07-12": { amount: 1500, mood: "good", memo: "..." } }
+    entries: []
   };
 
   function loadState() {
@@ -40,7 +50,13 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       var parsed = JSON.parse(raw);
-      return Object.assign({}, defaultState, parsed);
+      var merged = Object.assign({}, defaultState, parsed);
+      // 万が一、以前の形式（日付をキーにしたオブジェクト）が残っていた場合は
+      // 壊れたデータとして扱わず、空の配列として扱う（記録し直していただく）。
+      if (!Array.isArray(merged.entries)) {
+        merged.entries = [];
+      }
+      return merged;
     } catch (e) {
       console.error("状態の読み込みに失敗しました", e);
       return null;
@@ -57,12 +73,15 @@
     }
   }
 
+  function generateId() {
+    return "e_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+  }
+
   var state = loadState() || Object.assign({}, defaultState);
 
 
   /* ----------------------------------------------------------------
      2. スクロール出現アニメーション
-     .reveal を持つセクションが画面内に入ったら is-visible を付与する。
   ---------------------------------------------------------------- */
   function initRevealAnimation() {
     var targets = document.querySelectorAll(".reveal");
@@ -123,8 +142,8 @@
       state.setupDone = true;
 
       saveState(state);
-      renderDashboard();
       toggleOnboardingVisibility();
+      renderDashboard();
     });
   }
 
@@ -147,6 +166,8 @@
      4. メイン画面の表示切り替え・レンダリング
   ---------------------------------------------------------------- */
   var selectedMood = null;
+  var selectedDailyChoice = null; // "worked" | "rest" | null
+  var editingEntryId = null;      // 編集中の記録ID（nullなら新規追加モード）
 
   function todayKey() {
     var d = new Date();
@@ -157,8 +178,8 @@
   }
 
   function renderDashboard() {
-  if (!state.setupDone) return;
-  if (!document.getElementById("dashboard")) return; // コラムページ等、dashboard要素がないページでは何もしない
+    if (!state.setupDone) return;
+    if (!document.getElementById("dashboard")) return; // コラムページ等、dashboard要素がないページでは何もしない
 
     // 働き方に応じた入力欄の出し分け
     var inputs = {
@@ -170,24 +191,75 @@
       if (inputs[key]) inputs[key].hidden = (key !== state.payType);
     });
 
-    // 既に今日の記録がある場合は、フォームに反映する
-    var existing = state.entries[todayKey()];
-    if (existing) {
-      if (state.payType === "hourly" && existing.hours != null) {
-        document.getElementById("input-hours").value = existing.hours;
-      }
-      if (state.payType === "piece") {
-        document.getElementById("input-piece-amount").value = existing.amount;
-      }
-      document.getElementById("input-memo").value = existing.memo || "";
-      selectedMood = existing.mood || null;
-    }
-    updateMoodButtons();
-
     renderCheerMessage();
+    renderRecordList();
     renderGoalProgress();
     renderLifetimeStats();
     renderPensionCountdown();
+  }
+
+
+  /* ----------------------------------------------------------------
+     5. 記録フォーム（追加・編集）の操作
+  ---------------------------------------------------------------- */
+  function resetRecordForm() {
+    var hoursInput = document.getElementById("input-hours");
+    var pieceInput = document.getElementById("input-piece-amount");
+    var memoInput = document.getElementById("input-memo");
+
+    if (hoursInput) hoursInput.value = "";
+    if (pieceInput) pieceInput.value = "";
+    if (memoInput) memoInput.value = "";
+
+    selectedMood = null;
+    selectedDailyChoice = null;
+    updateMoodButtons();
+    updateDailyChoiceButtons();
+  }
+
+  function enterEditMode(entry) {
+    editingEntryId = entry.id;
+
+    if (state.payType === "hourly") {
+      var hoursInput = document.getElementById("input-hours");
+      if (hoursInput) hoursInput.value = entry.hours != null ? entry.hours : "";
+    } else if (state.payType === "piece") {
+      var pieceInput = document.getElementById("input-piece-amount");
+      if (pieceInput) pieceInput.value = entry.amount;
+    } else if (state.payType === "daily") {
+      selectedDailyChoice = entry.amount > 0 ? "worked" : "rest";
+      updateDailyChoiceButtons();
+    }
+
+    selectedMood = entry.mood || null;
+    updateMoodButtons();
+
+    var memoInput = document.getElementById("input-memo");
+    if (memoInput) memoInput.value = entry.memo || "";
+
+    var title = document.getElementById("record-form-title");
+    var saveButton = document.getElementById("save-record-button");
+    var cancelButton = document.getElementById("cancel-edit-button");
+    if (title) title.textContent = "✎ 記録を編集";
+    if (saveButton) saveButton.textContent = "記録を更新";
+    if (cancelButton) cancelButton.hidden = false;
+
+    var formWidget = title ? title.closest(".widget") : null;
+    if (formWidget && formWidget.scrollIntoView) {
+      formWidget.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function exitEditMode() {
+    editingEntryId = null;
+    resetRecordForm();
+
+    var title = document.getElementById("record-form-title");
+    var saveButton = document.getElementById("save-record-button");
+    var cancelButton = document.getElementById("cancel-edit-button");
+    if (title) title.textContent = "📅 今日の記録を追加";
+    if (saveButton) saveButton.textContent = "記録を追加";
+    if (cancelButton) cancelButton.hidden = true;
   }
 
   function updateMoodButtons() {
@@ -197,77 +269,194 @@
     });
   }
 
+  function updateDailyChoiceButtons() {
+    var buttons = document.querySelectorAll("[data-daily-choice]");
+    buttons.forEach(function (btn) {
+      var isSelected = btn.dataset.dailyChoice === selectedDailyChoice;
+      btn.classList.toggle("is-selected", isSelected);
+      btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    });
+  }
 
-  /* ----------------------------------------------------------------
-     5. 今日の記録（工賃・気分・メモ）の保存
-  ---------------------------------------------------------------- */
   function initTodayRecordForm() {
     // 気分ボタン
     var moodButtons = document.querySelectorAll(".mood-button");
     moodButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        selectedMood = btn.dataset.mood;
+        selectedMood = (selectedMood === btn.dataset.mood) ? null : btn.dataset.mood;
         updateMoodButtons();
       });
     });
 
-    // 日給制：出勤／お休みボタン
+    // 日給制：出勤／お休み（選択するだけで、まだ保存はしない）
     var dailyButtons = document.querySelectorAll("[data-daily-choice]");
     dailyButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var amount = (btn.dataset.dailyChoice === "worked") ? state.dailyWage : 0;
-        saveTodayEntry(amount);
+        selectedDailyChoice = (selectedDailyChoice === btn.dataset.dailyChoice) ? null : btn.dataset.dailyChoice;
+        updateDailyChoiceButtons();
       });
     });
 
-    // 保存ボタン（時給制・出来高制はこちらから保存）
+    // 記録を追加／更新
     var saveButton = document.getElementById("save-record-button");
     if (saveButton) {
       saveButton.addEventListener("click", function () {
         var amount = 0;
+        var extra = {};
 
         if (state.payType === "hourly") {
           var hours = Number(document.getElementById("input-hours").value) || 0;
           amount = hours * state.hourlyWage;
-          saveTodayEntry(amount, { hours: hours });
+          extra.hours = hours;
         } else if (state.payType === "piece") {
           amount = Number(document.getElementById("input-piece-amount").value) || 0;
-          saveTodayEntry(amount);
-        } else {
-          // 日給制はボタンで既に保存済みのケースが多いが、
-          // メモ・気分だけ更新したい場合にも対応する。
-          var existing = state.entries[todayKey()];
-          amount = existing ? existing.amount : 0;
-          saveTodayEntry(amount);
+        } else if (state.payType === "daily") {
+          if (!selectedDailyChoice) {
+            window.alert("「出勤した」か「お休み」を選んでください。");
+            return;
+          }
+          amount = (selectedDailyChoice === "worked") ? state.dailyWage : 0;
         }
+
+        var memo = document.getElementById("input-memo").value.trim();
+
+        if (editingEntryId) {
+          var target = state.entries.find(function (e) { return e.id === editingEntryId; });
+          if (target) {
+            target.amount = amount;
+            target.mood = selectedMood;
+            target.memo = memo;
+            Object.assign(target, extra);
+          }
+        } else {
+          var newEntry = Object.assign({
+            id: generateId(),
+            date: todayKey(),
+            amount: amount,
+            mood: selectedMood,
+            memo: memo,
+            createdAt: Date.now()
+          }, extra);
+          state.entries.push(newEntry);
+        }
+
+        saveState(state);
+
+        var status = document.getElementById("save-status");
+        if (status) {
+          status.textContent = (editingEntryId ? "記録を更新しました！（" : "記録しました！（") + amount.toLocaleString() + "円）";
+          window.setTimeout(function () { status.textContent = ""; }, 4000);
+        }
+
+        exitEditMode();
+        renderRecordList();
+        renderGoalProgress();
+        renderLifetimeStats();
       });
     }
-  }
 
-  function saveTodayEntry(amount, extra) {
-    var memo = document.getElementById("input-memo").value.trim();
-    var entry = Object.assign({
-      amount: amount,
-      mood: selectedMood,
-      memo: memo
-    }, extra || {});
-
-    state.entries[todayKey()] = entry;
-    saveState(state);
-
-    renderGoalProgress();
-    renderLifetimeStats();
-
-    var status = document.getElementById("save-status");
-    if (status) {
-      status.textContent = "記録しました！（" + amount.toLocaleString() + "円）";
-      window.setTimeout(function () { status.textContent = ""; }, 4000);
+    // 編集をやめる
+    var cancelButton = document.getElementById("cancel-edit-button");
+    if (cancelButton) {
+      cancelButton.addEventListener("click", function () {
+        exitEditMode();
+      });
     }
   }
 
 
   /* ----------------------------------------------------------------
-     6. 集計処理（今月の達成率／人生累計／記録日数）
+     6. 記録一覧の表示・編集・削除
+  ---------------------------------------------------------------- */
+  var moodEmoji = { good: "😊", normal: "😐", hard: "😢" };
+
+  function renderRecordList() {
+    var listEl = document.getElementById("record-list");
+    var emptyEl = document.getElementById("record-list-empty");
+    if (!listEl) return;
+
+    var prefix = getThisMonthPrefix();
+    var monthEntries = state.entries
+      .filter(function (e) { return e.date.indexOf(prefix) === 0; })
+      .slice()
+      .sort(function (a, b) {
+        if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
+    listEl.innerHTML = "";
+
+    if (monthEntries.length === 0) {
+      if (emptyEl) emptyEl.hidden = false;
+      return;
+    }
+    if (emptyEl) emptyEl.hidden = true;
+
+    monthEntries.forEach(function (entry) {
+      var li = document.createElement("li");
+      li.className = "record-list__item";
+      li.dataset.entryId = entry.id;
+
+      var dateLabel = entry.date === todayKey() ? "本日" : entry.date.slice(5).replace("-", "/") + "日";
+      var moodLabel = entry.mood ? moodEmoji[entry.mood] : "";
+      var memoLabel = entry.memo ? entry.memo : "";
+
+      li.innerHTML =
+        '<div class="record-list__main">' +
+          '<span class="record-list__date">' + dateLabel + '</span>' +
+          '<span class="record-list__amount">' + entry.amount.toLocaleString() + '円</span>' +
+          '<span class="record-list__mood">' + moodLabel + '</span>' +
+        '</div>' +
+        (memoLabel ? '<p class="record-list__memo"></p>' : '') +
+        '<div class="record-list__actions">' +
+          '<button type="button" class="record-list__action" data-action="edit">編集</button>' +
+          '<button type="button" class="record-list__action record-list__action--danger" data-action="delete">削除</button>' +
+        '</div>';
+
+      if (memoLabel) {
+        li.querySelector(".record-list__memo").textContent = memoLabel;
+      }
+
+      listEl.appendChild(li);
+    });
+  }
+
+  function initRecordListActions() {
+    var listEl = document.getElementById("record-list");
+    if (!listEl) return;
+
+    listEl.addEventListener("click", function (event) {
+      var actionButton = event.target.closest("[data-action]");
+      if (!actionButton) return;
+
+      var li = actionButton.closest("[data-entry-id]");
+      if (!li) return;
+
+      var entryId = li.dataset.entryId;
+      var entry = state.entries.find(function (e) { return e.id === entryId; });
+      if (!entry) return;
+
+      if (actionButton.dataset.action === "edit") {
+        enterEditMode(entry);
+      } else if (actionButton.dataset.action === "delete") {
+        var confirmed = window.confirm("この記録を削除します。よろしいですか？");
+        if (!confirmed) return;
+
+        state.entries = state.entries.filter(function (e) { return e.id !== entryId; });
+        if (editingEntryId === entryId) {
+          exitEditMode();
+        }
+        saveState(state);
+        renderRecordList();
+        renderGoalProgress();
+        renderLifetimeStats();
+      }
+    });
+  }
+
+
+  /* ----------------------------------------------------------------
+     7. 集計処理（今月の達成率／人生累計／記録日数）
   ---------------------------------------------------------------- */
   function getThisMonthPrefix() {
     var d = new Date();
@@ -278,9 +467,9 @@
     var prefix = getThisMonthPrefix();
     var monthTotal = 0;
 
-    Object.keys(state.entries).forEach(function (dateKey) {
-      if (dateKey.indexOf(prefix) === 0) {
-        monthTotal += state.entries[dateKey].amount || 0;
+    state.entries.forEach(function (entry) {
+      if (entry.date.indexOf(prefix) === 0) {
+        monthTotal += entry.amount || 0;
       }
     });
 
@@ -323,12 +512,14 @@
 
   function renderLifetimeStats() {
     var total = 0;
-    var days = 0;
+    var dateSet = {};
 
-    Object.keys(state.entries).forEach(function (dateKey) {
-      total += state.entries[dateKey].amount || 0;
-      days += 1;
+    state.entries.forEach(function (entry) {
+      total += entry.amount || 0;
+      dateSet[entry.date] = true;
     });
+
+    var days = Object.keys(dateSet).length;
 
     var totalEl = document.getElementById("lifetime-total");
     var daysEl = document.getElementById("lifetime-days");
@@ -338,7 +529,7 @@
 
 
   /* ----------------------------------------------------------------
-     7. 支給日カウントダウン
+     8. 支給日カウントダウン
      障害年金は「偶数月の15日」に支給される（土日の場合は直前の平日に前倒し）。
      ※祝日による前倒しは、正確な祝日データを持たないため対象外とする。
        この点はUI側にも注記している。
@@ -399,7 +590,7 @@
 
 
   /* ----------------------------------------------------------------
-     8. 応援メッセージ（日替わり・ランダム表示）
+     9. 応援メッセージ（日替わり・ランダム表示）
   ---------------------------------------------------------------- */
   var cheerMessages = [
     "今日も一日お疲れ様でした。",
@@ -420,7 +611,7 @@
 
 
   /* ----------------------------------------------------------------
-     9. リセット機能（テスト用）
+     10. リセット機能（テスト用）
      公開前の動作確認用に、いつでも初期設定をやり直せるようにする。
   ---------------------------------------------------------------- */
   function initResetButton() {
@@ -439,12 +630,13 @@
 
 
   /* ----------------------------------------------------------------
-     10. 初期化
+     11. 初期化
   ---------------------------------------------------------------- */
   document.addEventListener("DOMContentLoaded", function () {
     initRevealAnimation();
     initOnboarding();
     initTodayRecordForm();
+    initRecordListActions();
     initResetButton();
     toggleOnboardingVisibility();
     if (state.setupDone) {
