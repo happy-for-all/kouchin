@@ -630,6 +630,26 @@
   }
 
 
+/* ----------------------------------------------------------------
+     トップに戻るボタン
+  ---------------------------------------------------------------- */
+  function initScrollTopButton() {
+    var button = document.getElementById("scroll-top-button");
+    if (!button) return;
+
+    window.addEventListener("scroll", function () {
+      var shouldShow = window.scrollY > 300;
+      button.classList.toggle("is-visible", shouldShow);
+    });
+
+    button.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+
+   
+
   /* ----------------------------------------------------------------
      11. 初期化
   ---------------------------------------------------------------- */
@@ -639,6 +659,7 @@
     initTodayRecordForm();
     initRecordListActions();
     initResetButton();
+    initScrollTopButton();
     toggleOnboardingVisibility();
     if (state.setupDone) {
       renderDashboard();
