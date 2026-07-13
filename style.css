@@ -137,6 +137,18 @@ body {
   box-shadow: 0 18px 40px -20px rgba(74, 55, 34, 0.35);
 }
 
+/* 広告セクション専用：カード風の背景・余白・影をなくし、
+   広告（fluid/in-article形式）がそのままの実サイズで自然に見えるようにする。
+   スマホで「広告よりも背景の箱の方が大きい」という不自然さを解消する。 */
+.ad-section .section__inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -691,5 +703,46 @@ main > article {
 
   .feature-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------
+   13. トップに戻るボタン
+------------------------------------------------------------------ */
+.scroll-top-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px -6px rgba(74, 55, 34, 0.45);
+  z-index: 500;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.scroll-top-button.is-visible {
+  display: flex;
+}
+
+.scroll-top-button:hover,
+.scroll-top-button:focus-visible {
+  background: var(--color-primary-dark);
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-top-button {
+    transition: none;
   }
 }
